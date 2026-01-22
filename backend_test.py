@@ -15,6 +15,18 @@ import uuid
 # Add the app directory to Python path
 sys.path.append('/app')
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv('/app/.env')
+except ImportError:
+    # If python-dotenv is not available, manually load .env
+    with open('/app/.env', 'r') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ[key] = value
+
 class MotoDealer_Backend_Tester:
     def __init__(self):
         # Load environment variables
