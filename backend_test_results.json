@@ -1,16 +1,16 @@
 {
   "summary": {
-    "total_tests": 14,
-    "passed_tests": 8,
+    "total_tests": 15,
+    "passed_tests": 9,
     "failed_tests": 6,
-    "success_rate": 57.14285714285714
+    "success_rate": 60.0
   },
   "test_results": [
     {
       "test": "Environment Variables",
       "success": true,
       "message": "All required environment variables present",
-      "timestamp": "2026-01-22T17:42:24.462906",
+      "timestamp": "2026-01-22T17:43:40.084172",
       "details": {
         "supabase_url": "https://sinflgzydhmzorvifijp.supabase.co",
         "base_url": "https://motodealer-app.preview.emergentagent.com"
@@ -20,7 +20,7 @@
       "test": "API Root Endpoint",
       "success": true,
       "message": "API is running and responding correctly",
-      "timestamp": "2026-01-22T17:42:24.554585",
+      "timestamp": "2026-01-22T17:43:40.345799",
       "details": {
         "message": "MotoDealer SaaS API",
         "status": "running",
@@ -31,17 +31,17 @@
       "test": "API Health Endpoint",
       "success": true,
       "message": "Health check passed",
-      "timestamp": "2026-01-22T17:42:24.573785",
+      "timestamp": "2026-01-22T17:43:40.387773",
       "details": {
         "status": "healthy",
-        "timestamp": "2026-01-22T17:42:24.570Z"
+        "timestamp": "2026-01-22T17:43:40.364Z"
       }
     },
     {
       "test": "Supabase Connection",
       "success": true,
       "message": "Successfully connected to Supabase, found 2 active dealerships",
-      "timestamp": "2026-01-22T17:42:25.485214",
+      "timestamp": "2026-01-22T17:43:40.608344",
       "details": {
         "dealerships": [
           "motostachira",
@@ -53,7 +53,7 @@
       "test": "Authentication - motostachira@gmail.com",
       "success": false,
       "message": "Authentication failed with status 400",
-      "timestamp": "2026-01-22T17:42:25.782303",
+      "timestamp": "2026-01-22T17:43:40.831174",
       "details": {
         "status_code": 400,
         "response": "{\"code\":400,\"error_code\":\"invalid_credentials\",\"msg\":\"Invalid login credentials\"}"
@@ -63,62 +63,74 @@
       "test": "Authentication - eklasvegas@gmail.com",
       "success": false,
       "message": "Authentication failed with status 400",
-      "timestamp": "2026-01-22T17:42:25.982237",
+      "timestamp": "2026-01-22T17:43:41.041157",
       "details": {
         "status_code": 400,
         "response": "{\"code\":400,\"error_code\":\"invalid_credentials\",\"msg\":\"Invalid login credentials\"}"
       }
     },
     {
-      "test": "Categories CRUD",
+      "test": "Categories CREATE",
       "success": false,
-      "message": "Error in categories CRUD: Expecting value: line 1 column 1 (char 0)",
-      "timestamp": "2026-01-22T17:42:26.144005",
+      "message": "Failed to create category, status 409",
+      "timestamp": "2026-01-22T17:43:41.176181",
       "details": {
-        "error": "Expecting value: line 1 column 1 (char 0)"
+        "status_code": 409,
+        "response": "{\"code\":\"23505\",\"details\":\"Key (dealership_id, slug)=(d1111111-1111-1111-1111-111111111111, motos-test) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"categories_dealership_id_slug_key\\\"\"}"
       }
     },
     {
       "test": "Subcategories CRUD",
       "success": false,
-      "message": "Error in subcategories CRUD: Expecting value: line 1 column 1 (char 0)",
-      "timestamp": "2026-01-22T17:42:26.280592",
+      "message": "Failed to create parent category for subcategory test",
+      "timestamp": "2026-01-22T17:43:41.300082",
       "details": {
-        "error": "Expecting value: line 1 column 1 (char 0)"
+        "status_code": 409
       }
     },
     {
-      "test": "Products CRUD",
+      "test": "Products CREATE",
       "success": false,
-      "message": "Error in products CRUD: Expecting value: line 1 column 1 (char 0)",
-      "timestamp": "2026-01-22T17:42:26.415313",
+      "message": "Failed to create product, status 409",
+      "timestamp": "2026-01-22T17:43:41.424497",
       "details": {
-        "error": "Expecting value: line 1 column 1 (char 0)"
+        "status_code": 409,
+        "response": "{\"code\":\"23505\",\"details\":\"Key (dealership_id, slug)=(d1111111-1111-1111-1111-111111111111, honda-cbr-500-test) already exists.\",\"hint\":null,\"message\":\"duplicate key value violates unique constraint \\\"products_dealership_id_slug_key\\\"\"}"
       }
     },
     {
-      "test": "Employees CRUD",
-      "success": false,
-      "message": "Error in employees CRUD: Expecting value: line 1 column 1 (char 0)",
-      "timestamp": "2026-01-22T17:42:26.727722",
+      "test": "Employees CREATE",
+      "success": true,
+      "message": "Successfully created test employee",
+      "timestamp": "2026-01-22T17:43:41.570972",
       "details": {
-        "error": "Expecting value: line 1 column 1 (char 0)"
+        "employee_id": "6b953426-085a-4998-9d3e-0e4e107a4635",
+        "name": "Juan P\u00e9rez Test"
+      }
+    },
+    {
+      "test": "Employees READ",
+      "success": true,
+      "message": "Successfully retrieved employees",
+      "timestamp": "2026-01-22T17:43:41.696404",
+      "details": {
+        "total_employees": 2
       }
     },
     {
       "test": "Site Settings UPDATE",
-      "success": true,
-      "message": "Successfully updated site settings",
-      "timestamp": "2026-01-22T17:42:26.998994",
+      "success": false,
+      "message": "Failed to update settings, status 200",
+      "timestamp": "2026-01-22T17:43:42.102936",
       "details": {
-        "settings_id": "e4de5036-e323-45de-a2d4-38e1d76257ed"
+        "status_code": 200
       }
     },
     {
       "test": "Site Settings READ",
       "success": true,
       "message": "Successfully retrieved site settings",
-      "timestamp": "2026-01-22T17:42:26.999022",
+      "timestamp": "2026-01-22T17:43:42.102968",
       "details": {
         "settings_count": 1
       }
@@ -127,7 +139,7 @@
       "test": "Public Landing Page - motostachira",
       "success": true,
       "message": "Landing page loads successfully",
-      "timestamp": "2026-01-22T17:42:27.042931",
+      "timestamp": "2026-01-22T17:43:42.703672",
       "details": {
         "url": "https://motodealer-app.preview.emergentagent.com/catalogo/motostachira",
         "status_code": 200
@@ -137,12 +149,12 @@
       "test": "Public Landing Page - eklasvegas",
       "success": true,
       "message": "Landing page loads successfully",
-      "timestamp": "2026-01-22T17:42:27.098734",
+      "timestamp": "2026-01-22T17:43:42.789167",
       "details": {
         "url": "https://motodealer-app.preview.emergentagent.com/catalogo/eklasvegas",
         "status_code": 200
       }
     }
   ],
-  "timestamp": "2026-01-22T17:42:27.098913"
+  "timestamp": "2026-01-22T17:43:42.789357"
 }
