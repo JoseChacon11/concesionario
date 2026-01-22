@@ -359,7 +359,8 @@ class MotoDealer_Backend_Tester:
         headers = {
             'apikey': self.supabase_service_key,
             'Authorization': f'Bearer {self.supabase_service_key}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
         }
         
         test_dealership_id = self.test_users[0]['dealership_id']
