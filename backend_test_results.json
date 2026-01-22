@@ -1,0 +1,138 @@
+{
+  "summary": {
+    "total_tests": 13,
+    "passed_tests": 4,
+    "failed_tests": 9,
+    "success_rate": 30.76923076923077
+  },
+  "test_results": [
+    {
+      "test": "Environment Variables",
+      "success": false,
+      "message": "Missing variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_BASE_URL",
+      "timestamp": "2026-01-22T17:42:04.968089",
+      "details": {
+        "missing": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "SUPABASE_SERVICE_ROLE_KEY",
+          "NEXT_PUBLIC_BASE_URL"
+        ]
+      }
+    },
+    {
+      "test": "API Root Endpoint",
+      "success": true,
+      "message": "API is running and responding correctly",
+      "timestamp": "2026-01-22T17:42:05.846071",
+      "details": {
+        "message": "MotoDealer SaaS API",
+        "status": "running",
+        "database": "Supabase"
+      }
+    },
+    {
+      "test": "API Health Endpoint",
+      "success": true,
+      "message": "Health check passed",
+      "timestamp": "2026-01-22T17:42:05.901871",
+      "details": {
+        "status": "healthy",
+        "timestamp": "2026-01-22T17:42:05.899Z"
+      }
+    },
+    {
+      "test": "Supabase Connection",
+      "success": false,
+      "message": "Failed to connect to Supabase: Invalid URL 'None/rest/v1/dealerships?select=id,slug,name,is_active&is_active=eq.true': No scheme supplied. Perhaps you meant https://None/rest/v1/dealerships?select=id,slug,name,is_active&is_active=eq.true?",
+      "timestamp": "2026-01-22T17:42:05.902070",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/dealerships?select=id,slug,name,is_active&is_active=eq.true': No scheme supplied. Perhaps you meant https://None/rest/v1/dealerships?select=id,slug,name,is_active&is_active=eq.true?"
+      }
+    },
+    {
+      "test": "Authentication - motostachira@gmail.com",
+      "success": false,
+      "message": "Authentication error: Invalid URL 'None/auth/v1/token?grant_type=password': No scheme supplied. Perhaps you meant https://None/auth/v1/token?grant_type=password?",
+      "timestamp": "2026-01-22T17:42:05.902157",
+      "details": {
+        "error": "Invalid URL 'None/auth/v1/token?grant_type=password': No scheme supplied. Perhaps you meant https://None/auth/v1/token?grant_type=password?"
+      }
+    },
+    {
+      "test": "Authentication - eklasvegas@gmail.com",
+      "success": false,
+      "message": "Authentication error: Invalid URL 'None/auth/v1/token?grant_type=password': No scheme supplied. Perhaps you meant https://None/auth/v1/token?grant_type=password?",
+      "timestamp": "2026-01-22T17:42:05.902223",
+      "details": {
+        "error": "Invalid URL 'None/auth/v1/token?grant_type=password': No scheme supplied. Perhaps you meant https://None/auth/v1/token?grant_type=password?"
+      }
+    },
+    {
+      "test": "Categories CRUD",
+      "success": false,
+      "message": "Error in categories CRUD: Invalid URL 'None/rest/v1/categories': No scheme supplied. Perhaps you meant https://None/rest/v1/categories?",
+      "timestamp": "2026-01-22T17:42:05.902282",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/categories': No scheme supplied. Perhaps you meant https://None/rest/v1/categories?"
+      }
+    },
+    {
+      "test": "Subcategories CRUD",
+      "success": false,
+      "message": "Error in subcategories CRUD: Invalid URL 'None/rest/v1/categories': No scheme supplied. Perhaps you meant https://None/rest/v1/categories?",
+      "timestamp": "2026-01-22T17:42:05.902334",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/categories': No scheme supplied. Perhaps you meant https://None/rest/v1/categories?"
+      }
+    },
+    {
+      "test": "Products CRUD",
+      "success": false,
+      "message": "Error in products CRUD: Invalid URL 'None/rest/v1/products': No scheme supplied. Perhaps you meant https://None/rest/v1/products?",
+      "timestamp": "2026-01-22T17:42:05.902392",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/products': No scheme supplied. Perhaps you meant https://None/rest/v1/products?"
+      }
+    },
+    {
+      "test": "Employees CRUD",
+      "success": false,
+      "message": "Error in employees CRUD: Invalid URL 'None/rest/v1/employees': No scheme supplied. Perhaps you meant https://None/rest/v1/employees?",
+      "timestamp": "2026-01-22T17:42:05.902439",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/employees': No scheme supplied. Perhaps you meant https://None/rest/v1/employees?"
+      }
+    },
+    {
+      "test": "Site Settings CRUD",
+      "success": false,
+      "message": "Error in site settings CRUD: Invalid URL 'None/rest/v1/site_settings?dealership_id=eq.d1111111-1111-1111-1111-111111111111': No scheme supplied. Perhaps you meant https://None/rest/v1/site_settings?dealership_id=eq.d1111111-1111-1111-1111-111111111111?",
+      "timestamp": "2026-01-22T17:42:05.902499",
+      "details": {
+        "error": "Invalid URL 'None/rest/v1/site_settings?dealership_id=eq.d1111111-1111-1111-1111-111111111111': No scheme supplied. Perhaps you meant https://None/rest/v1/site_settings?dealership_id=eq.d1111111-1111-1111-1111-111111111111?"
+      }
+    },
+    {
+      "test": "Public Landing Page - motostachira",
+      "success": true,
+      "message": "Landing page loads successfully",
+      "timestamp": "2026-01-22T17:42:06.793466",
+      "details": {
+        "url": "https://motodealer-app.preview.emergentagent.com/catalogo/motostachira",
+        "status_code": 200
+      }
+    },
+    {
+      "test": "Public Landing Page - eklasvegas",
+      "success": true,
+      "message": "Landing page loads successfully",
+      "timestamp": "2026-01-22T17:42:06.893242",
+      "details": {
+        "url": "https://motodealer-app.preview.emergentagent.com/catalogo/eklasvegas",
+        "status_code": 200
+      }
+    }
+  ],
+  "timestamp": "2026-01-22T17:42:06.893453"
+}
