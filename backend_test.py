@@ -398,7 +398,11 @@ class MotoDealer_Backend_Tester:
             )
             
             if response.status_code == 201:
-                created_category = response.json()[0]
+                response_data = response.json()
+                if isinstance(response_data, list) and len(response_data) > 0:
+                    created_category = response_data[0]
+                else:
+                    created_category = response_data
                 category_id = created_category['id']
                 
                 self.log_test(
