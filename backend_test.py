@@ -397,12 +397,23 @@ class MotoDealer_Backend_Tester:
                 timeout=10
             )
             
+            print(f"Categories CREATE response: {response.status_code} - {response.text}")
+            
             if response.status_code == 201:
-                response_data = response.json()
-                if isinstance(response_data, list) and len(response_data) > 0:
-                    created_category = response_data[0]
-                else:
-                    created_category = response_data
+                try:
+                    response_data = response.json()
+                    if isinstance(response_data, list) and len(response_data) > 0:
+                        created_category = response_data[0]
+                    else:
+                        created_category = response_data
+                except json.JSONDecodeError:
+                    self.log_test(
+                        "Categories CREATE",
+                        False,
+                        f"Invalid JSON response: {response.text}",
+                        {'status_code': response.status_code, 'response': response.text}
+                    )
+                    return
                 category_id = created_category['id']
                 
                 self.log_test(
