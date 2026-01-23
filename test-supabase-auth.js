@@ -1,8 +1,9 @@
 // Test de autenticación con Supabase
+require('dotenv').config()
 const { createClient } = require('@supabase/supabase-js')
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = 'https://sinflgzydhmzorvifijp.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpbmZsZ3p5ZGhtem9ydmlmaWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwMjgwMDQsImV4cCI6MjA4NDYwNDAwNH0.8GQsbQfS9wzKt8LyElkmvmR89XdC3vzJ1IV6d8hVLP8'
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
