@@ -1,15 +1,17 @@
 import './globals.css'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata = {
-  title: 'Next.js MongoDB Template',
-  description: 'A simple template with App Router, MongoDB, and shadcn/ui',
+  title: 'MotoDealer SaaS - Sistema Multi-tenant',
+  description: 'Sistema de gestión para concesionarios de motos',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body>
         {children}
+        <Toaster />
       </body>
     </html>
   )
