@@ -1,5 +1,4 @@
 // Test de autenticación con Supabase
-require('dotenv').config()
 const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = 'https://sinflgzydhmzorvifijp.supabase.co'
