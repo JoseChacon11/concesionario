@@ -3,37 +3,109 @@
 import { useDealership } from '@/contexts/DealershipContext'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Grid3x3, Package, Users, Settings, Bike } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { 
+  LayoutDashboard, 
+  Grid3x3, 
+  Package, 
+  Users, 
+  Settings, 
+  ExternalLink,
+  LogOut,
+  ChevronRight
+} from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import Image from 'next/image'
 
 const menuItems = [
-  { href: '/dashboard', label: 'Panel', icon: LayoutDashboard },
-  { href: '/dashboard/categories', label: 'Categorías', icon: Grid3x3 },
-  { href: '/dashboard/products', label: 'Productos', icon: Package },
-  { href: '/dashboard/employees', label: 'Empleados', icon: Users },
-  { href: '/dashboard/settings', label: 'Configuración', icon: Settings },
+  { 
+    href: '/dashboard', 
+    label: 'Dashboard', 
+    icon: LayoutDashboard,
+    description: 'Vista general'
+  },
+  { 
+    href: '/dashboard/categories', 
+    label: 'Categorías', 
+    icon: Grid3x3,
+    description: 'Gestiona categorías'
+  },
+  { 
+    href: '/dashboard/products', 
+    label: 'Productos', 
+    icon: Package,
+    description: 'Gestiona inventario'
+  },
+  { 
+    href: '/dashboard/employees', 
+    label: 'Empleados', 
+    icon: Users,
+    description: 'Gestiona equipo'
+  },
+  { 
+    href: '/dashboard/settings', 
+    label: 'Configuración', 
+    icon: Settings,
+    description: 'Personaliza sitio'
+  },
 ]
 
 export default function DashboardSidebar() {
-  const { dealership } = useDealership()
+  const { dealership, user, signOut } = useDealership()
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/login')
+  }
+
+  const initials = dealership?.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'AD'
 
   return (
-    <aside className="w-64 bg-card border-r flex flex-col">
-      <div className="p-6 border-b">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-racing-orange-400 to-racing-orange-600 rounded-lg">
-            <Bike className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h2 className="font-bold text-lg leading-tight">{dealership?.name || 'Cargando...'}</h2>
-            <p className="text-xs text-muted-foreground">Admin Panel</p>
+    <aside className="w-72 bg-gradient-to-b from-card to-card/50 border-r flex flex-col">
+      {/* Header con Logo */}
+      <div className="p-6">
+        <div className="flex items-center space-x-3 mb-6">
+          {dealership?.logo_url ? (
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden ring-2 ring-primary/20">
+              <Image
+                src={dealership.logo_url}
+                alt={dealership.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-gradient-to-br from-primary/90 to-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              {initials}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-base leading-tight truncate">{dealership?.name || 'Cargando...'}</h2>
+            <p className="text-xs text-muted-foreground">Panel de Control</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -43,34 +115,97 @@ export default function DashboardSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
+                'group flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 relative',
                 isActive
-                  ? 'bg-racing-orange-400 text-white font-medium'
-                  : 'text-foreground hover:bg-accent'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <Icon className={cn(
+                'w-5 h-5 transition-transform group-hover:scale-110',
+                isActive && 'drop-shadow-sm'
+              )} />
+              <div className="flex-1 min-w-0">
+                <p className={cn(
+                  'text-sm font-medium truncate',
+                  isActive && 'font-semibold'
+                )}>
+                  {item.label}
+                </p>
+                <p className="text-xs opacity-70 truncate">{item.description}</p>
+              </div>
+              {isActive && (
+                <ChevronRight className="w-4 h-4 animate-pulse" />
+              )}
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Tema</span>
+      <Separator className="my-3" />
+
+      {/* Quick Actions */}
+      <div className="px-3 pb-3 space-y-2">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-auto py-3 hover:bg-accent transition-all hover:scale-[1.02]"
+          asChild
+        >
+          <Link href={`/catalogo/${dealership?.slug}`} target="_blank">
+            <ExternalLink className="w-4 h-4" />
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium">Ver Sitio Público</p>
+              <p className="text-xs text-muted-foreground">/{dealership?.slug}</p>
+            </div>
+          </Link>
+        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="flex-1 text-xs text-muted-foreground px-2">Tema</div>
           <ModeToggle />
         </div>
-        <div className="text-xs text-muted-foreground">
-          <p className="font-medium mb-1">Landing Page:</p>
-          <Link
-            href={`/catalogo/${dealership?.slug}`}
-            target="_blank"
-            className="text-racing-orange-400 hover:underline"
-          >
-            /catalogo/{dealership?.slug}
-          </Link>
-        </div>
+      </div>
+
+      <Separator />
+
+      {/* User Profile */}
+      <div className="p-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start gap-3 h-auto py-3 hover:bg-accent transition-all group"
+            >
+              <Avatar className="h-10 w-10 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                {dealership?.logo_url ? (
+                  <AvatarImage src={dealership.logo_url} alt={dealership.name} />
+                ) : null}
+                <AvatarFallback className="bg-gradient-to-br from-primary/90 to-primary text-white font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-sm font-medium truncate">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">Administrador</p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" side="top">
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{dealership?.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   )
