@@ -46,8 +46,8 @@ export function CartDrawer() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant=\"outline\" className=\"relative\">
-          <ShoppingCart className=\"w-5 h-5\" />
+        <Button variant="outline" className="relative">
+          <ShoppingCart className="w-5 h-5" />
           {totalItems > 0 && (
             <Badge 
               variant=\"destructive\" 
