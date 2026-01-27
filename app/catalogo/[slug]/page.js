@@ -1,16 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2, Search, ShoppingCart, MessageCircle, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Package } from 'lucide-react'
+import { Loader2, Search, MessageCircle, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Package } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import { useCartStore } from '@/store/cart-store'
+import { CartDrawer } from '@/components/cart-drawer'
+import { ModeToggle } from '@/components/mode-toggle'
+import { ProductGridSkeleton } from '@/components/skeletons/product-skeleton'
+import Fuse from 'fuse.js'
 
 export default function CatalogoPage() {
   const params = useParams()
@@ -25,9 +30,9 @@ export default function CatalogoPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
-  const [cart, setCart] = useState([])
   const supabase = createClient()
   const { toast } = useToast()
+  const { addItem, setDealershipInfo } = useCartStore()
 
   useEffect(() => {
     if (slug) {
@@ -56,6 +61,13 @@ export default function CatalogoPage() {
         .single()
 
       setSettings(settingsData)
+      
+      // Set dealership info in cart store
+      setDealershipInfo({
+        name: dealershipData.name,
+        main_whatsapp: settingsData?.main_whatsapp || dealershipData.phone,
+        phone: dealershipData.phone,
+      })
 
       // Fetch products with images
       const { data: productsData } = await supabase
@@ -104,53 +116,62 @@ export default function CatalogoPage() {
     }
   }
 
-  const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((p) => p.id === product.id)
-      if (existing) {
-        return prev.map((p) => 
-          p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p
-        )
-      }
-      return [...prev, { ...product, quantity: 1 }]
-    })
+  const handleAddToCart = (product) => {
+    addItem(product)
     toast({
       title: 'Agregado al carrito',
-      description: `${product.name} agregado`,
+      description: `${product.name} agregado correctamente`,
     })
   }
 
-  const removeFromCart = (productId) => {
-    setCart((prev) => prev.filter((p) => p.id !== productId))
-  }
+  // Fuzzy search configuration
+  const fuse = useMemo(() => {
+    if (!products.length) return null
+    
+    return new Fuse(products, {
+      keys: ['name', 'brand', 'model', 'description'],
+      threshold: 0.4,
+      includeScore: true,
+    })
+  }, [products])
 
-  const sendWhatsAppInquiry = () => {
-    if (cart.length === 0) {
-      toast({
-        title: 'Carrito vacío',
-        description: 'Agrega productos para consultar',
-        variant: 'destructive',
-      })
-      return
+  // Filtered products with fuzzy search
+  const filteredProducts = useMemo(() => {
+    let result = products
+
+    // Apply fuzzy search
+    if (searchTerm && fuse) {
+      const searchResults = fuse.search(searchTerm)
+      result = searchResults.map(({ item }) => item)
     }
 
-    const message = `Hola! Estoy interesado en los siguientes productos:\n\n${cart
-      .map((item) => `• ${item.name} (${item.quantity}x)${item.price ? ` - $${item.price}` : ''}`)
-      .join('\n')}\n\n¿Podrían darme más información?`
+    // Apply category filter
+    if (selectedCategory) {
+      result = result.filter((product) => product.category_id === selectedCategory)
+    }
 
-    const phone = settings?.main_whatsapp || dealership?.phone || ''
-    const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
-  }
+    // Apply subcategory filter
+    if (selectedSubcategory) {
+      result = result.filter((product) => product.subcategory_id === selectedSubcategory)
+    }
 
-  const filteredProducts = products.filter((product) => {
-    if (selectedCategory && product.category_id !== selectedCategory) return false
-    if (selectedSubcategory && product.subcategory_id !== selectedSubcategory) return false
-    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    if (priceRange.min && product.price < parseFloat(priceRange.min)) return false
-    if (priceRange.max && product.price > parseFloat(priceRange.max)) return false
-    return true
-  })
+    // Apply price range filter
+    if (priceRange.min) {
+      result = result.filter((product) => product.price >= parseFloat(priceRange.min))
+    }
+    if (priceRange.max) {
+      result = result.filter((product) => product.price <= parseFloat(priceRange.max))
+    }
+
+    return result
+  }, [products, searchTerm, selectedCategory, selectedSubcategory, priceRange, fuse])
+
+  // Get filtered subcategories based on selected category
+  const filteredSubcategories = useMemo(() => {
+    if (!selectedCategory) return []
+    const category = categories.find((cat) => cat.id === selectedCategory)
+    return category?.subcategories || []
+  }, [selectedCategory, categories])
 
   const getPrimaryImage = (product) => {
     return product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
@@ -162,15 +183,17 @@ export default function CatalogoPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </div>
       </div>
     )
   }
 
   if (!dealership) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen">
+      <div className="flex flex-col items-center justify-center h-screen bg-background">
         <h1 className="text-4xl font-bold mb-4">Concesionario no encontrado</h1>
         <p className="text-muted-foreground">El concesionario que buscas no existe o está inactivo</p>
       </div>
@@ -178,9 +201,9 @@ export default function CatalogoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-white z-50 shadow-sm">
+      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {settings?.logo_url ? (
@@ -192,21 +215,14 @@ export default function CatalogoPage() {
                 className="object-contain"
               />
             ) : (
-              <h1 className="text-2xl font-bold" style={{ color: settings?.primary_color || '#000' }}>
+              <h1 className="text-2xl font-bold text-primary">
                 {dealership.name}
               </h1>
             )}
           </div>
-          <div className="flex items-center space-x-4">
-            {cart.length > 0 && (
-              <Button onClick={sendWhatsAppInquiry} className="relative">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Consultar ({cart.length})
-                <Badge className="absolute -top-2 -right-2" variant="destructive">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </Badge>
-              </Button>
-            )}
+          <div className="flex items-center space-x-3">
+            <ModeToggle />
+            <CartDrawer />
           </div>
         </div>
       </header>
@@ -221,7 +237,7 @@ export default function CatalogoPage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-center text-white space-y-4 px-4">
               <h1 className="text-5xl font-bold">{settings.hero_title || dealership.name}</h1>
               <p className="text-xl">{settings.hero_subtitle || 'Tu concesionario de confianza'}</p>
@@ -230,20 +246,24 @@ export default function CatalogoPage() {
         </section>
       )}
 
-      {/* Filters Section */}
-      <section className="border-b bg-slate-50 py-6">
+      {/* Search and Filters Section */}
+      <section className="border-b bg-card/50 py-6">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Fuzzy Search */}
+            <div className="lg:col-span-2 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Buscar productos..."
+                placeholder="Buscar por marca, modelo o descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="pl-10"
               />
             </div>
+            
+            {/* Category Filter */}
             <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
               value={selectedCategory}
               onChange={(e) => {
                 setSelectedCategory(e.target.value)
@@ -257,112 +277,179 @@ export default function CatalogoPage() {
                 </option>
               ))}
             </select>
+            
+            {/* Subcategory Filter (Dynamic) */}
             <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
               value={selectedSubcategory}
               onChange={(e) => setSelectedSubcategory(e.target.value)}
               disabled={!selectedCategory}
             >
               <option value="">Todas las subcategorías</option>
-              {categories
-                .find((cat) => cat.id === selectedCategory)
-                ?.subcategories?.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </option>
-                ))}
+              {filteredSubcategories.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
             </select>
-            <div className="flex space-x-2">
+            
+            {/* Price Range */}
+            <div className="flex gap-2">
               <Input
                 type="number"
                 placeholder="Precio mín."
                 value={priceRange.min}
                 onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                className="w-1/2"
               />
               <Input
                 type="number"
                 placeholder="Precio máx."
                 value={priceRange.max}
                 onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                className="w-1/2"
               />
             </div>
           </div>
+          
+          {/* Active Filters Display */}
+          {(searchTerm || selectedCategory || selectedSubcategory || priceRange.min || priceRange.max) && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {searchTerm && (
+                <Badge variant="secondary" className="gap-1">
+                  Búsqueda: {searchTerm}
+                  <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-destructive">×</button>
+                </Badge>
+              )}
+              {selectedCategory && (
+                <Badge variant="secondary" className="gap-1">
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <button onClick={() => { setSelectedCategory(''); setSelectedSubcategory(''); }} className="ml-1 hover:text-destructive">×</button>
+                </Badge>
+              )}
+              {selectedSubcategory && (
+                <Badge variant="secondary" className="gap-1">
+                  {filteredSubcategories.find(s => s.id === selectedSubcategory)?.name}
+                  <button onClick={() => setSelectedSubcategory('')} className="ml-1 hover:text-destructive">×</button>
+                </Badge>
+              )}
+              {(priceRange.min || priceRange.max) && (
+                <Badge variant="secondary" className="gap-1">
+                  Precio: ${priceRange.min || '0'} - ${priceRange.max || '∞'}
+                  <button onClick={() => setPriceRange({ min: '', max: '' })} className="ml-1 hover:text-destructive">×</button>
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Products Catalog */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Catálogo de Productos</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold">Catálogo de Productos</h2>
+            <p className="text-muted-foreground">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'producto' : 'productos'}
+            </p>
+          </div>
+          
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p className="text-lg">No se encontraron productos</p>
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-lg font-medium">No se encontraron productos</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Intenta ajustar los filtros o la búsqueda
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredProducts.map((product) => {
                 const primaryImage = getPrimaryImage(product)
                 return (
-                  <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative h-48 bg-slate-100">
-                      {primaryImage ? (
-                        <Image
-                          src={primaryImage.image_url}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <Package className="w-16 h-16 text-slate-300" />
-                        </div>
-                      )}
-                      <Badge
-                        className="absolute top-2 right-2"
-                        variant={
-                          product.status === 'available'
-                            ? 'default'
+                  <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] group">
+                    <Link href={`/catalogo/${slug}/producto/${product.id}`}>
+                      <div className="relative h-48 bg-muted">
+                        {primaryImage ? (
+                          <Image
+                            src={primaryImage.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <Package className="w-16 h-16 text-muted-foreground/20" />
+                          </div>
+                        )}
+                        <Badge
+                          className="absolute top-2 right-2"
+                          variant={
+                            product.status === 'available'
+                              ? 'default'
+                              : product.status === 'sold'
+                              ? 'secondary'
+                              : 'outline'
+                          }
+                        >
+                          {product.status === 'available'
+                            ? 'Disponible'
                             : product.status === 'sold'
-                            ? 'secondary'
-                            : 'outline'
-                        }
-                      >
-                        {product.status === 'available'
-                          ? 'Disponible'
-                          : product.status === 'sold'
-                          ? 'Vendido'
-                          : 'Reservado'}
-                      </Badge>
-                    </div>
+                            ? 'Vendido'
+                            : 'Reservado'}
+                        </Badge>
+                      </div>
+                    </Link>
+                    
                     <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+                      <Link href={`/catalogo/${slug}/producto/${product.id}`}>
+                        <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors line-clamp-1">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      
                       {isMotorcycle(product) && (
                         <p className="text-sm text-muted-foreground mb-2">
                           {product.brand} {product.model} {product.year}
                         </p>
                       )}
+                      
                       <p className="text-sm text-muted-foreground mb-2">
                         {product.categories?.name}
                         {product.subcategories && ` • ${product.subcategories.name}`}
                       </p>
+                      
                       {product.price && (
-                        <p className="text-2xl font-bold mb-3" style={{ color: settings?.primary_color || '#000' }}>
+                        <p className="text-2xl font-bold text-primary mb-3">
                           ${product.price.toLocaleString()}
                         </p>
                       )}
+                      
                       {product.description && (
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                           {product.description}
                         </p>
                       )}
-                      <Button
-                        onClick={() => addToCart(product)}
-                        className="w-full"
-                        disabled={product.status !== 'available'}
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Agregar al Carrito
-                      </Button>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleAddToCart(product)}
+                          className="flex-1"
+                          disabled={product.status !== 'available'}
+                          size="sm"
+                        >
+                          Agregar
+                        </Button>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Link href={`/catalogo/${slug}/producto/${product.id}`}>
+                            Ver
+                          </Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 )
@@ -374,7 +461,7 @@ export default function CatalogoPage() {
 
       {/* Employees Section */}
       {employees.length > 0 && (
-        <section className="py-12 bg-slate-50">
+        <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">Nuestro Equipo</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -390,7 +477,7 @@ export default function CatalogoPage() {
                         className="rounded-full object-cover mx-auto mb-4 w-30 h-30"
                       />
                     ) : (
-                      <div className="w-30 h-30 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+                      <div className="w-30 h-30 bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4">
                         {employee.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
                       </div>
                     )}
@@ -401,7 +488,7 @@ export default function CatalogoPage() {
                     {employee.whatsapp && (
                       <Button
                         onClick={() => window.open(`https://wa.me/${employee.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
-                        className="w-full"
+                        className="w-full bg-[#25D366] hover:bg-[#20BA5A]"
                         size="sm"
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
@@ -417,18 +504,18 @@ export default function CatalogoPage() {
       )}
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-card border-t py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4">{dealership.name}</h3>
-              <p className="text-slate-300">
+              <p className="text-muted-foreground">
                 {settings?.footer_text || `Tu concesionario de confianza`}
               </p>
             </div>
             <div>
               <h3 className="text-xl font-bold mb-4">Contacto</h3>
-              <div className="space-y-2 text-slate-300">
+              <div className="space-y-2 text-muted-foreground">
                 {settings?.footer_address && (
                   <p className="flex items-center">
                     <MapPin className="w-4 h-4 mr-2" />
@@ -453,29 +540,29 @@ export default function CatalogoPage() {
               <h3 className="text-xl font-bold mb-4">Síguenos</h3>
               <div className="flex space-x-4">
                 {settings?.facebook_url && (
-                  <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-400">
+                  <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                     <Facebook className="w-6 h-6" />
                   </a>
                 )}
                 {settings?.instagram_url && (
-                  <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="hover:text-pink-400">
+                  <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                     <Instagram className="w-6 h-6" />
                   </a>
                 )}
                 {settings?.twitter_url && (
-                  <a href={settings.twitter_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-400">
+                  <a href={settings.twitter_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                     <Twitter className="w-6 h-6" />
                   </a>
                 )}
                 {settings?.youtube_url && (
-                  <a href={settings.youtube_url} target="_blank" rel="noopener noreferrer" className="hover:text-red-400">
+                  <a href={settings.youtube_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                     <Youtube className="w-6 h-6" />
                   </a>
                 )}
               </div>
             </div>
           </div>
-          <div className="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400">
+          <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
             <p>© {new Date().getFullYear()} {dealership.name}. Todos los derechos reservados.</p>
           </div>
         </div>
@@ -485,8 +572,8 @@ export default function CatalogoPage() {
       {settings?.main_whatsapp && (
         <Button
           onClick={() => window.open(`https://wa.me/${settings.main_whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
-          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-2xl"
-          style={{ backgroundColor: '#25D366' }}
+          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-2xl bg-[#25D366] hover:bg-[#20BA5A]"
+          size="icon"
         >
           <MessageCircle className="w-6 h-6" />
         </Button>
