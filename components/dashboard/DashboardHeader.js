@@ -31,7 +31,7 @@ export default function DashboardHeader() {
     .slice(0, 2) || 'AD'
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+    <header className="h-16 bg-card border-b flex items-center justify-between px-6">
       <div>
         <h1 className="text-lg font-semibold">Dashboard</h1>
       </div>
