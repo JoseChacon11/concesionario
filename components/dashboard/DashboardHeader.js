@@ -41,7 +41,7 @@ export default function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                <AvatarFallback className="bg-gradient-to-br from-racing-orange-400 to-racing-orange-600 text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
