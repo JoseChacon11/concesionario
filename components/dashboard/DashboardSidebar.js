@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Grid3x3, Package, Users, Settings, Bike } from 'lucide-react'
+import { ModeToggle } from '@/components/mode-toggle'
 
 const menuItems = [
   { href: '/dashboard', label: 'Panel', icon: LayoutDashboard },
@@ -19,10 +20,10 @@ export default function DashboardSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-      <div className="p-6 border-b border-slate-200">
+    <aside className="w-64 bg-card border-r flex flex-col">
+      <div className="p-6 border-b">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-racing-orange-400 to-racing-orange-600 rounded-lg">
             <Bike className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -44,8 +45,8 @@ export default function DashboardSidebar() {
               className={cn(
                 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
                 isActive
-                  ? 'bg-blue-50 text-blue-600 font-medium'
-                  : 'text-slate-600 hover:bg-slate-50'
+                  ? 'bg-racing-orange-400 text-white font-medium'
+                  : 'text-foreground hover:bg-accent'
               )}
             >
               <Icon className="w-5 h-5" />
@@ -55,13 +56,17 @@ export default function DashboardSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-200">
+      <div className="p-4 border-t space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Tema</span>
+          <ModeToggle />
+        </div>
         <div className="text-xs text-muted-foreground">
           <p className="font-medium mb-1">Landing Page:</p>
           <Link
             href={`/catalogo/${dealership?.slug}`}
             target="_blank"
-            className="text-blue-600 hover:underline"
+            className="text-racing-orange-400 hover:underline"
           >
             /catalogo/{dealership?.slug}
           </Link>
