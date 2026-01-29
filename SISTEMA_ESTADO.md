@@ -86,16 +86,16 @@
 ## 📱 URLs DISPONIBLES
 
 ### Para Administradores
-- **Login**: https://motodealer-app.preview.emergentagent.com/login
-- **Dashboard**: https://motodealer-app.preview.emergentagent.com/dashboard
-- **Categorías**: https://motodealer-app.preview.emergentagent.com/dashboard/categories
-- **Productos**: https://motodealer-app.preview.emergentagent.com/dashboard/products
-- **Empleados**: https://motodealer-app.preview.emergentagent.com/dashboard/employees
-- **Configuración**: https://motodealer-app.preview.emergentagent.com/dashboard/settings
+- **Login**: https://bike-showroom-4.preview.emergentagent.com/login
+- **Dashboard**: https://bike-showroom-4.preview.emergentagent.com/dashboard
+- **Categorías**: https://bike-showroom-4.preview.emergentagent.com/dashboard/categories
+- **Productos**: https://bike-showroom-4.preview.emergentagent.com/dashboard/products
+- **Empleados**: https://bike-showroom-4.preview.emergentagent.com/dashboard/employees
+- **Configuración**: https://bike-showroom-4.preview.emergentagent.com/dashboard/settings
 
 ### Landing Pages Públicos
-- **Motos Táchira**: https://motodealer-app.preview.emergentagent.com/catalogo/motostachira
-- **Eklas Vegas**: https://motodealer-app.preview.emergentagent.com/catalogo/eklasvegas
+- **Motos Táchira**: https://bike-showroom-4.preview.emergentagent.com/catalogo/motostachira
+- **Eklas Vegas**: https://bike-showroom-4.preview.emergentagent.com/catalogo/eklasvegas
 
 ## 🎯 PRÓXIMOS PASOS SUGERIDOS
 

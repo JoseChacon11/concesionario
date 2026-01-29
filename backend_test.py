@@ -30,7 +30,7 @@ except ImportError:
 class MotoDealer_Backend_Tester:
     def __init__(self):
         # Load environment variables
-        self.base_url = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://motodealer-app.preview.emergentagent.com')
+        self.base_url = os.getenv('NEXT_PUBLIC_BASE_URL', 'https://bike-showroom-4.preview.emergentagent.com')
         self.api_url = f"{self.base_url}/api"
         self.supabase_url = os.getenv('NEXT_PUBLIC_SUPABASE_URL')
         self.supabase_anon_key = os.getenv('NEXT_PUBLIC_SUPABASE_ANON_KEY')

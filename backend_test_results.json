@@ -13,7 +13,7 @@
       "timestamp": "2026-01-22T17:43:40.084172",
       "details": {
         "supabase_url": "https://sinflgzydhmzorvifijp.supabase.co",
-        "base_url": "https://motodealer-app.preview.emergentagent.com"
+        "base_url": "https://bike-showroom-4.preview.emergentagent.com"
       }
     },
     {
@@ -141,7 +141,7 @@
       "message": "Landing page loads successfully",
       "timestamp": "2026-01-22T17:43:42.703672",
       "details": {
-        "url": "https://motodealer-app.preview.emergentagent.com/catalogo/motostachira",
+        "url": "https://bike-showroom-4.preview.emergentagent.com/catalogo/motostachira",
         "status_code": 200
       }
     },
@@ -151,7 +151,7 @@
       "message": "Landing page loads successfully",
       "timestamp": "2026-01-22T17:43:42.789167",
       "details": {
-        "url": "https://motodealer-app.preview.emergentagent.com/catalogo/eklasvegas",
+        "url": "https://bike-showroom-4.preview.emergentagent.com/catalogo/eklasvegas",
         "status_code": 200
       }
     }
