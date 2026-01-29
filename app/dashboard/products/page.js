@@ -412,9 +412,9 @@ export default function ProductsPage() {
               Nuevo Producto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <DialogHeader className="pb-4">
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <DialogHeader className="pb-4 shrink-0">
                 <DialogTitle>
                   {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
                 </DialogTitle>
@@ -422,7 +422,7 @@ export default function ProductsPage() {
                   Los campos cambian según la categoría seleccionada
                 </DialogDescription>
               </DialogHeader>
-              <ScrollArea className="flex-1 -mx-6 px-6">
+              <div className="flex-1 overflow-y-auto pr-2">
                 <div className="space-y-4 pb-4">
                 {/* Categoría y Subcategoría - Responsive */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
