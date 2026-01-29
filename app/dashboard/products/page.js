@@ -45,6 +45,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import Image from 'next/image'
+import { MotorcycleSpecsForm } from '@/components/products/MotorcycleSpecsForm'
+import { MOTORCYCLE_SPECS_TEMPLATE } from '@/lib/motorcycle-specs'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function ProductsPage() {
   const { dealership, loading: dealershipLoading } = useDealership()
