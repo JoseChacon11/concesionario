@@ -248,6 +248,7 @@ export default function ProductsPage() {
 
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-')
+      const isMotorcycle = getCategoryName(formData.category_id).toLowerCase().includes('moto')
       const productData = {
         dealership_id: dealership.id,
         category_id: formData.category_id || null,
@@ -260,6 +261,7 @@ export default function ProductsPage() {
         price: formData.price ? parseFloat(formData.price) : null,
         description: formData.description || null,
         status: formData.status,
+        specifications: isMotorcycle ? specifications : null,
       }
 
       let productId
