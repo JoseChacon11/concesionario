@@ -391,6 +391,13 @@ export default function ProductDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Motorcycle Technical Sheet - Full Width */}
+        {isMotorcycle() && product.specifications && (
+          <div className="mt-8">
+            <MotorcycleTechnicalSheet specifications={product.specifications} />
+          </div>
+        )}
       </div>
     </div>
   )
