@@ -397,23 +397,24 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Productos</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold">Productos</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona tu inventario de motos, accesorios y repuestos
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} disabled={categories.length === 0}>
+            <Button onClick={resetForm} disabled={categories.length === 0} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Producto
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <DialogHeader className="pb-4">
                 <DialogTitle>
                   {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
                 </DialogTitle>
@@ -421,7 +422,8 @@ export default function ProductsPage() {
                   Los campos cambian según la categoría seleccionada
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
+              <ScrollArea className="flex-1 -mx-6 px-6">
+                <div className="space-y-4 pb-4">
                 {/* Categoría y Subcategoría - Responsive */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
