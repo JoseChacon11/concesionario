@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useDealership } from '@/contexts/DealershipContext'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -32,8 +32,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Pencil, Trash2, Loader2, Package, Upload, X, Image as ImageIcon } from 'lucide-react'
+import { 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Loader2, 
+  Package, 
+  Upload, 
+  X, 
+  Image as ImageIcon,
+  Search,
+  FilterX
+} from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +65,7 @@ import {
 import Image from 'next/image'
 import { MotorcycleSpecsForm } from '@/components/products/MotorcycleSpecsForm'
 import { MOTORCYCLE_SPECS_TEMPLATE } from '@/lib/motorcycle-specs'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import Fuse from 'fuse.js'
 
 export default function ProductsPage() {
   const { dealership, loading: dealershipLoading } = useDealership()
@@ -67,6 +85,12 @@ export default function ProductsPage() {
   const { toast } = useToast()
   const supabase = createClient()
 
+  // Estados para filtros
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterSubcategory, setFilterSubcategory] = useState('')
+  const [filterSubcategoriesOptions, setFilterSubcategoriesOptions] = useState([])
+
   const [formData, setFormData] = useState({
     name: '',
     category_id: '',
@@ -78,6 +102,60 @@ export default function ProductsPage() {
     description: '',
     status: 'available',
   })
+
+  // Fuse.js para búsqueda fuzzy
+  const fuse = useMemo(() => {
+    return new Fuse(products, {
+      keys: ['name', 'model', 'brand'],
+      threshold: 0.4,
+      ignoreLocation: true,
+    })
+  }, [products])
+
+  // Productos filtrados
+  const filteredProducts = useMemo(() => {
+    let result = products
+
+    // Filtro por búsqueda fuzzy
+    if (searchQuery.trim()) {
+      const searchResults = fuse.search(searchQuery)
+      result = searchResults.map(r => r.item)
+    }
+
+    // Filtro por categoría
+    if (filterCategory) {
+      result = result.filter(p => p.category_id === filterCategory)
+    }
+
+    // Filtro por subcategoría
+    if (filterSubcategory) {
+      result = result.filter(p => p.subcategory_id === filterSubcategory)
+    }
+
+    return result
+  }, [products, searchQuery, filterCategory, filterSubcategory, fuse])
+
+  // Verificar si hay filtros activos
+  const hasActiveFilters = searchQuery || filterCategory || filterSubcategory
+
+  // Limpiar filtros
+  const clearFilters = () => {
+    setSearchQuery('')
+    setFilterCategory('')
+    setFilterSubcategory('')
+    setFilterSubcategoriesOptions([])
+  }
+
+  // Actualizar subcategorías del filtro cuando cambia la categoría
+  useEffect(() => {
+    if (filterCategory) {
+      const filtered = subcategories.filter(sub => sub.category_id === filterCategory)
+      setFilterSubcategoriesOptions(filtered)
+    } else {
+      setFilterSubcategoriesOptions([])
+      setFilterSubcategory('')
+    }
+  }, [filterCategory, subcategories])
 
   useEffect(() => {
     if (dealership?.id) {
@@ -387,6 +465,17 @@ export default function ProductsPage() {
     return catName.toLowerCase().includes('moto')
   }
 
+  // Obtener badge de estado
+  const getStatusBadge = (status) => {
+    const config = {
+      available: { variant: 'default', label: 'Disponible' },
+      sold: { variant: 'secondary', label: 'Vendido' },
+      reserved: { variant: 'outline', label: 'Reservado' }
+    }
+    const { variant, label } = config[status] || config.available
+    return <Badge variant={variant}>{label}</Badge>
+  }
+
   if (dealershipLoading || loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -667,120 +756,259 @@ export default function ProductsPage() {
         </Dialog>
       </div>
 
+      {/* Barra de Herramientas - Filtros */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            {/* Búsqueda Fuzzy */}
+            <div className="relative flex-1 w-full sm:max-w-xs">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre o modelo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Filtro Categoría */}
+            <Select value={filterCategory} onValueChange={(value) => {
+              setFilterCategory(value === 'all' ? '' : value)
+              setFilterSubcategory('')
+            }}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro Subcategoría */}
+            <Select 
+              value={filterSubcategory} 
+              onValueChange={(value) => setFilterSubcategory(value === 'all' ? '' : value)}
+              disabled={!filterCategory}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Subcategoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {filterSubcategoriesOptions.map((sub) => (
+                  <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Botón Limpiar Filtros */}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2 text-muted-foreground">
+                <FilterX className="h-4 w-4" />
+                <span className="hidden sm:inline">Limpiar</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Contador de resultados */}
+          {hasActiveFilters && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Mostrando {filteredProducts.length} de {products.length} productos
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Inventario */}
       <Card>
         <CardHeader>
           <CardTitle>Inventario</CardTitle>
           <CardDescription>Lista de todos tus productos</CardDescription>
         </CardHeader>
         <CardContent>
-          {products.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Package className="w-16 h-16 mx-auto mb-4 opacity-20" />
-              <p className="text-lg font-medium">No hay productos aún</p>
-              <p className="text-sm">Crea tu primer producto para empezar</p>
+              {hasActiveFilters ? (
+                <>
+                  <p className="text-lg font-medium">No se encontraron productos</p>
+                  <p className="text-sm">Intenta con otros filtros de búsqueda</p>
+                  <Button variant="link" onClick={clearFilters} className="mt-2">
+                    Limpiar filtros
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-lg font-medium">No hay productos aún</p>
+                  <p className="text-sm">Crea tu primer producto para empezar</p>
+                </>
+              )}
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-6">
-              <div className="inline-block min-w-full align-middle px-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[250px]">Producto</TableHead>
-                      <TableHead className="min-w-[120px]">Categoría</TableHead>
-                      <TableHead className="min-w-[100px]">Precio</TableHead>
-                      <TableHead className="min-w-[100px]">Estado</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => {
-                      const primaryImage = product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
-                      
-                      return (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              {primaryImage ? (
-                                <div className="relative w-12 h-12 shrink-0">
-                                  <Image
-                                    src={primaryImage.image_url}
-                                    alt={product.name}
-                                    fill
-                                    className="rounded-lg object-cover"
-                                  />
+            <>
+              {/* Vista Desktop - Tabla */}
+              <div className="hidden md:block overflow-x-auto -mx-6">
+                <div className="inline-block min-w-full align-middle px-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[280px]">Producto</TableHead>
+                        <TableHead className="min-w-[120px]">Categoría</TableHead>
+                        <TableHead className="min-w-[100px]">Precio</TableHead>
+                        <TableHead className="min-w-[100px]">Estado</TableHead>
+                        <TableHead className="text-right min-w-[100px]">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProducts.map((product) => {
+                        const primaryImage = product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
+                        
+                        return (
+                          <TableRow key={product.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-4">
+                                {primaryImage ? (
+                                  <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden">
+                                    <Image
+                                      src={primaryImage.image_url}
+                                      alt={product.name}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-14 h-14 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="font-semibold truncate">{product.name}</p>
+                                  {product.brand && (
+                                    <p className="text-sm text-muted-foreground truncate">
+                                      {product.brand} {product.model} {product.year}
+                                    </p>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                                  <ImageIcon className="w-5 h-5 text-muted-foreground" />
-                                </div>
-                              )}
-                              <div className="min-w-0">
-                                <p className="font-medium truncate">{product.name}</p>
-                                {product.brand && (
-                                  <p className="text-sm text-muted-foreground truncate">
-                                    {product.brand} {product.model} {product.year}
-                                  </p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">{product.categories?.name}</span>
+                                {product.subcategories && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {product.subcategories.name}
+                                  </span>
                                 )}
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <span className="text-sm">{product.categories?.name}</span>
-                              {product.subcategories && (
-                                <span className="text-xs text-muted-foreground">
-                                  {product.subcategories.name}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-medium">
-                              {product.price ? `$${product.price.toLocaleString()}` : '-'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                product.status === 'available'
-                                  ? 'default'
-                                  : product.status === 'sold'
-                                  ? 'secondary'
-                                  : 'outline'
-                              }
-                            >
-                              {product.status === 'available'
-                                ? 'Disponible'
-                                : product.status === 'sold'
-                                ? 'Vendido'
-                                : 'Reservado'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end gap-2">
-                              <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEdit(product)}>
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  setDeleteTarget(product.id)
-                                  setDeleteAlertOpen(true)
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold">
+                                {product.price ? `$${product.price.toLocaleString()}` : '-'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {getStatusBadge(product.status)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-end gap-2">
+                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEdit(product)}>
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
+                                  onClick={() => {
+                                    setDeleteTarget(product.id)
+                                    setDeleteAlertOpen(true)
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
-            </div>
+
+              {/* Vista Mobile - Grid de Cards */}
+              <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredProducts.map((product) => {
+                  const primaryImage = product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
+                  
+                  return (
+                    <Card key={product.id} className="overflow-hidden group">
+                      {/* Imagen - 60% superior */}
+                      <div className="relative aspect-[4/3] bg-muted">
+                        {primaryImage ? (
+                          <Image
+                            src={primaryImage.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        {/* Acciones flotantes */}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            size="icon" 
+                            variant="secondary" 
+                            className="h-8 w-8 shadow-lg"
+                            onClick={() => openEdit(product)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="secondary" 
+                            className="h-8 w-8 shadow-lg text-destructive hover:text-destructive"
+                            onClick={() => {
+                              setDeleteTarget(product.id)
+                              setDeleteAlertOpen(true)
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        {/* Badge de estado */}
+                        <div className="absolute bottom-2 left-2">
+                          {getStatusBadge(product.status)}
+                        </div>
+                      </div>
+                      
+                      {/* Información - 40% inferior */}
+                      <CardContent className="p-3">
+                        <h3 className="font-semibold truncate">{product.name}</h3>
+                        {product.brand && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {product.brand} {product.model} {product.year}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="font-bold text-lg text-primary">
+                            {product.price ? `$${product.price.toLocaleString()}` : '-'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {product.categories?.name}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
