@@ -613,6 +613,16 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Motorcycle Specifications */}
+                {isMotorcycleCategory() && (
+                  <div className="mt-6">
+                    <MotorcycleSpecsForm
+                      specifications={specifications}
+                      onChange={setSpecifications}
+                    />
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={uploading}>
