@@ -63,6 +63,7 @@ export default function ProductsPage() {
   const [uploading, setUploading] = useState(false)
   const [imageFiles, setImageFiles] = useState([])
   const [existingImages, setExistingImages] = useState([])
+  const [specifications, setSpecifications] = useState({})
   const { toast } = useToast()
   const supabase = createClient()
 
