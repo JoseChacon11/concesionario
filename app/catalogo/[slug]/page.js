@@ -432,7 +432,12 @@ export default function CatalogoPage() {
                         </p>
                       )}
                       
-                      <div className="flex gap-2">
+                      {/* Motorcycle Specs Badges */}
+                      {isMotorcycle(product) && (
+                        <MotorcycleSpecsBadge specifications={product.specifications} />
+                      )}
+                      
+                      <div className="flex gap-2 mt-3">
                         <Button
                           onClick={() => handleAddToCart(product)}
                           className="flex-1"
