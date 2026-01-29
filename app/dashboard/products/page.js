@@ -646,8 +646,8 @@ export default function ProductsPage() {
                   </div>
                 )}
                 </div>
-              </ScrollArea>
-              <DialogFooter className="pt-4 border-t mt-4">
+              </div>
+              <DialogFooter className="pt-4 border-t mt-2 shrink-0">
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} disabled={uploading}>
                   Cancelar
                 </Button>
