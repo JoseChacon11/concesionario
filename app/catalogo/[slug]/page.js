@@ -15,6 +15,7 @@ import { useCartStore } from '@/store/cart-store'
 import { CartDrawer } from '@/components/cart-drawer'
 import { ModeToggle } from '@/components/mode-toggle'
 import { ProductGridSkeleton } from '@/components/skeletons/product-skeleton'
+import { MotorcycleSpecsBadge } from '@/components/products/MotorcycleTechnicalSheet'
 import Fuse from 'fuse.js'
 
 export default function CatalogoPage() {
