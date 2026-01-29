@@ -677,99 +677,107 @@ export default function ProductsPage() {
               <p className="text-sm">Crea tu primer producto para empezar</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => {
-                  const primaryImage = product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
-                  
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          {primaryImage ? (
-                            <Image
-                              src={primaryImage.image_url}
-                              alt={product.name}
-                              width={50}
-                              height={50}
-                              className="rounded-md object-cover"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-slate-100 rounded-md flex items-center justify-center">
-                              <ImageIcon className="w-6 h-6 text-slate-400" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            {product.brand && (
-                              <p className="text-sm text-muted-foreground">
-                                {product.brand} {product.model} {product.year}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm">{product.categories?.name}</span>
-                          {product.subcategories && (
-                            <span className="text-xs text-muted-foreground">
-                              {product.subcategories.name}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {product.price ? `$${product.price.toLocaleString()}` : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            product.status === 'available'
-                              ? 'default'
-                              : product.status === 'sold'
-                              ? 'secondary'
-                              : 'outline'
-                          }
-                        >
-                          {product.status === 'available'
-                            ? 'Disponible'
-                            : product.status === 'sold'
-                            ? 'Vendido'
-                            : 'Reservado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button size="sm" variant="outline" onClick={() => openEdit(product)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setDeleteTarget(product.id)
-                              setDeleteAlertOpen(true)
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            <div className="overflow-x-auto -mx-6">
+              <div className="inline-block min-w-full align-middle px-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[250px]">Producto</TableHead>
+                      <TableHead className="min-w-[120px]">Categoría</TableHead>
+                      <TableHead className="min-w-[100px]">Precio</TableHead>
+                      <TableHead className="min-w-[100px]">Estado</TableHead>
+                      <TableHead className="text-right min-w-[100px]">Acciones</TableHead>
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => {
+                      const primaryImage = product.product_images?.find((img) => img.is_primary) || product.product_images?.[0]
+                      
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              {primaryImage ? (
+                                <div className="relative w-12 h-12 shrink-0">
+                                  <Image
+                                    src={primaryImage.image_url}
+                                    alt={product.name}
+                                    fill
+                                    className="rounded-lg object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                                  <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{product.name}</p>
+                                {product.brand && (
+                                  <p className="text-sm text-muted-foreground truncate">
+                                    {product.brand} {product.model} {product.year}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="text-sm">{product.categories?.name}</span>
+                              {product.subcategories && (
+                                <span className="text-xs text-muted-foreground">
+                                  {product.subcategories.name}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              {product.price ? `$${product.price.toLocaleString()}` : '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                product.status === 'available'
+                                  ? 'default'
+                                  : product.status === 'sold'
+                                  ? 'secondary'
+                                  : 'outline'
+                              }
+                            >
+                              {product.status === 'available'
+                                ? 'Disponible'
+                                : product.status === 'sold'
+                                ? 'Vendido'
+                                : 'Reservado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-2">
+                              <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEdit(product)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  setDeleteTarget(product.id)
+                                  setDeleteAlertOpen(true)
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
