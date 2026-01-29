@@ -546,9 +546,10 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* Imágenes */}
+                <div className="space-y-4">
                   <Label>Imágenes</Label>
-                  <div className="border-2 border-dashed rounded-lg p-4">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 hover:border-primary/50 transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -561,50 +562,67 @@ export default function ProductsPage() {
                       htmlFor="image-upload"
                       className="flex flex-col items-center justify-center cursor-pointer"
                     >
-                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-sm text-muted-foreground">Click para subir imágenes</p>
+                      <div className="p-3 rounded-full bg-primary/10 mb-3">
+                        <Upload className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-sm font-medium">Click para subir imágenes</p>
+                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP hasta 10MB</p>
                     </label>
                   </div>
 
+                  {/* Imágenes existentes */}
                   {existingImages.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium mb-2">Imágenes actuales:</p>
-                      <div className="grid grid-cols-4 gap-2">
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">Imágenes actuales:</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {existingImages.map((img) => (
-                          <div key={img.id} className="relative group">
+                          <div key={img.id} className="relative group aspect-square">
                             <Image
                               src={img.image_url}
                               alt="Product"
-                              width={100}
-                              height={100}
-                              className="rounded-md object-cover w-full h-24"
+                              fill
+                              className="rounded-lg object-cover"
                             />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
                             <Button
                               type="button"
-                              size="sm"
+                              size="icon"
                               variant="destructive"
-                              className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                              className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => removeExistingImage(img.id)}
                             >
                               <X className="h-4 w-4" />
                             </Button>
+                            {img.is_primary && (
+                              <Badge className="absolute bottom-2 left-2 text-xs">Principal</Badge>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
+                  {/* Nuevas imágenes a subir - Bug corregido */}
                   {imageFiles.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium mb-2">Nuevas imágenes a subir:</p>
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">Nuevas imágenes a subir:</p>
                       <div className="space-y-2">
                         {imageFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between bg-slate-50 p-2 rounded">
-                            <span className="text-sm truncate">{file.name}</span>
+                          <div 
+                            key={index} 
+                            className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-muted/50"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="p-2 rounded bg-primary/10 shrink-0">
+                                <ImageIcon className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="text-sm truncate">{file.name}</span>
+                            </div>
                             <Button
                               type="button"
-                              size="sm"
+                              size="icon"
                               variant="ghost"
+                              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                               onClick={() => removeImageFile(index)}
                             >
                               <X className="h-4 w-4" />
