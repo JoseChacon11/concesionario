@@ -16,6 +16,7 @@ import { CartDrawer } from '@/components/cart-drawer'
 import { ModeToggle } from '@/components/mode-toggle'
 import { ProductDetailSkeleton } from '@/components/skeletons/product-skeleton'
 import useEmblaCarousel from 'embla-carousel-react'
+import { MotorcycleTechnicalSheet } from '@/components/products/MotorcycleTechnicalSheet'
 
 export default function ProductDetailPage() {
   const params = useParams()
