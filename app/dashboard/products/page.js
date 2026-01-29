@@ -422,12 +422,13 @@ export default function ProductsPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                {/* Categoría y Subcategoría - Responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="category">Categoría *</Label>
                     <select
                       id="category"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       value={formData.category_id}
                       onChange={(e) => setFormData({ ...formData, category_id: e.target.value, subcategory_id: '' })}
                       required
@@ -444,7 +445,7 @@ export default function ProductsPage() {
                     <Label htmlFor="subcategory">Subcategoría</Label>
                     <select
                       id="subcategory"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       value={formData.subcategory_id}
                       onChange={(e) => setFormData({ ...formData, subcategory_id: e.target.value })}
                       disabled={!formData.category_id}
@@ -459,6 +460,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
+                {/* Nombre del Producto */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre del Producto *</Label>
                   <Input
@@ -470,42 +472,42 @@ export default function ProductsPage() {
                   />
                 </div>
 
+                {/* Campos específicos de Motos - Responsive */}
                 {isMotorcycleCategory() && (
-                  <>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="brand">Marca</Label>
-                        <Input
-                          id="brand"
-                          placeholder="Honda, Yamaha..."
-                          value={formData.brand}
-                          onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="model">Modelo</Label>
-                        <Input
-                          id="model"
-                          placeholder="CBR 500"
-                          value={formData.model}
-                          onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="year">Año</Label>
-                        <Input
-                          id="year"
-                          type="number"
-                          placeholder="2024"
-                          value={formData.year}
-                          onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                        />
-                      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="brand">Marca</Label>
+                      <Input
+                        id="brand"
+                        placeholder="Honda, Yamaha..."
+                        value={formData.brand}
+                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      />
                     </div>
-                  </>
+                    <div className="space-y-2">
+                      <Label htmlFor="model">Modelo</Label>
+                      <Input
+                        id="model"
+                        placeholder="CBR 500"
+                        value={formData.model}
+                        onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Año</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        placeholder="2024"
+                        value={formData.year}
+                        onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Precio y Estado - Responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="price">Precio (USD)</Label>
                     <Input
@@ -521,7 +523,7 @@ export default function ProductsPage() {
                     <Label htmlFor="status">Estado *</Label>
                     <select
                       id="status"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                       required
