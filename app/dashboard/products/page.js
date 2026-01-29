@@ -356,6 +356,7 @@ export default function ProductsPage() {
     setEditingProduct(null)
     setImageFiles([])
     setExistingImages([])
+    setSpecifications({})
   }
 
   const openEdit = (product) => {
@@ -372,6 +373,7 @@ export default function ProductsPage() {
       status: product.status,
     })
     setExistingImages(product.product_images || [])
+    setSpecifications(product.specifications || {})
     setDialogOpen(true)
   }
 
