@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Loader2, Search, MessageCircle, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Package } from 'lucide-react'
+import { Loader2, Search, MessageCircle, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Package, Music, FilterX } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
@@ -73,8 +73,7 @@ export default function CatalogoPage() {
       // Fetch products with images
       const { data: productsData } = await supabase
         .from('products')
-        .select(`
-          *,
+        .select(`*,
           categories (id, name, slug),
           subcategories (id, name, slug),
           product_images (id, image_url, is_primary, display_order)
@@ -87,8 +86,7 @@ export default function CatalogoPage() {
       // Fetch categories
       const { data: categoriesData } = await supabase
         .from('categories')
-        .select(`
-          *,
+        .select(`*,
           subcategories (*)
         `)
         .eq('dealership_id', dealershipData.id)
@@ -182,6 +180,17 @@ export default function CatalogoPage() {
     return product.categories?.name?.toLowerCase().includes('moto')
   }
 
+  // Check if there are active filters
+  const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory || priceRange.min || priceRange.max
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchTerm('')
+    setSelectedCategory('')
+    setSelectedSubcategory('')
+    setPriceRange({ min: '', max: '' })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -209,7 +218,7 @@ export default function CatalogoPage() {
           <div className="flex items-center space-x-3">
             {settings?.logo_url ? (
               <Image
-                src={settings.logo_url}
+                src={settings.logo_url || "/placeholder.svg"}
                 alt={dealership.name}
                 width={150}
                 height={60}
@@ -232,116 +241,137 @@ export default function CatalogoPage() {
       {settings?.hero_image_url && (
         <section className="relative h-96 overflow-hidden">
           <Image
-            src={settings.hero_image_url}
+            src={settings.hero_image_url || "/placeholder.svg"}
             alt="Hero"
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="text-center text-white space-y-4 px-4">
-              <h1 className="text-5xl font-bold">{settings.hero_title || dealership.name}</h1>
-              <p className="text-xl">{settings.hero_subtitle || 'Tu concesionario de confianza'}</p>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/60 flex items-center justify-center">
+            <div className="text-center text-white space-y-4 px-4 max-w-2xl">
+              <h1 className="text-5xl md:text-6xl font-bold text-balance">
+                {settings.hero_title || dealership.name}
+              </h1>
+              <p className="text-lg md:text-xl text-gray-100">
+                {settings.hero_subtitle || 'Tu concesionario de confianza'}
+              </p>
             </div>
           </div>
         </section>
       )}
 
       {/* Search and Filters Section */}
-      <section className="border-b bg-card/50 py-6">
+      <section className="border-b py-4 bg-gradient-to-r from-background to-card/50 sticky top-16 z-40">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Fuzzy Search */}
-            <div className="lg:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Buscar por marca, modelo o descripción..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-3">
+            {/* Main Filters Row */}
+            <div className="flex flex-col lg:flex-row gap-2 lg:gap-3 items-stretch lg:items-center">
+              {/* Search Bar */}
+              <div className="flex-1 min-w-0 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 z-10" />
+                <Input
+                  placeholder="Buscar marca, modelo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-10"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground hover:border-primary/50 transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background flex-shrink-0 min-w-fit"
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value)
+                  setSelectedSubcategory('')
+                }}
+              >
+                <option value="">Categoría</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Subcategory Filter */}
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground hover:border-primary/50 transition-colors focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background disabled:opacity-50 flex-shrink-0 min-w-fit"
+                value={selectedSubcategory}
+                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                disabled={!selectedCategory}
+              >
+                <option value="">Subcategoría</option>
+                {filteredSubcategories.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Price Inputs */}
+              <div className="flex gap-2 flex-shrink-0">
+                <Input
+                  type="number"
+                  placeholder="Mín"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                  className="w-20 h-10"
+                />
+                <span className="flex items-center text-muted-foreground px-1">-</span>
+                <Input
+                  type="number"
+                  placeholder="Máx"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                  className="w-20 h-10"
+                />
+              </div>
+
+              {/* Clear Button */}
+              {hasActiveFilters && (
+                <Button
+                  onClick={clearAllFilters}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 whitespace-nowrap h-10 flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <FilterX className="w-4 h-4" />
+                  <span className="hidden sm:inline text-sm">Limpiar</span>
+                </Button>
+              )}
             </div>
-            
-            {/* Category Filter */}
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value)
-                setSelectedSubcategory('')
-              }}
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            
-            {/* Subcategory Filter (Dynamic) */}
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              value={selectedSubcategory}
-              onChange={(e) => setSelectedSubcategory(e.target.value)}
-              disabled={!selectedCategory}
-            >
-              <option value="">Todas las subcategorías</option>
-              {filteredSubcategories.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </select>
-            
-            {/* Price Range */}
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                placeholder="Precio mín."
-                value={priceRange.min}
-                onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                className="w-1/2"
-              />
-              <Input
-                type="number"
-                placeholder="Precio máx."
-                value={priceRange.max}
-                onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                className="w-1/2"
-              />
-            </div>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="flex flex-wrap gap-2">
+                {searchTerm && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
+                    Búsqueda: {searchTerm}
+                    <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                )}
+                {selectedCategory && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
+                    {categories.find(c => c.id === selectedCategory)?.name}
+                    <button onClick={() => { setSelectedCategory(''); setSelectedSubcategory(''); }} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                )}
+                {selectedSubcategory && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
+                    {filteredSubcategories.find(s => s.id === selectedSubcategory)?.name}
+                    <button onClick={() => setSelectedSubcategory('')} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                )}
+                {(priceRange.min || priceRange.max) && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
+                    ${priceRange.min || '0'} - ${priceRange.max || '∞'}
+                    <button onClick={() => setPriceRange({ min: '', max: '' })} className="ml-1 hover:text-destructive">×</button>
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
-          
-          {/* Active Filters Display */}
-          {(searchTerm || selectedCategory || selectedSubcategory || priceRange.min || priceRange.max) && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {searchTerm && (
-                <Badge variant="secondary" className="gap-1">
-                  Búsqueda: {searchTerm}
-                  <button onClick={() => setSearchTerm('')} className="ml-1 hover:text-destructive">×</button>
-                </Badge>
-              )}
-              {selectedCategory && (
-                <Badge variant="secondary" className="gap-1">
-                  {categories.find(c => c.id === selectedCategory)?.name}
-                  <button onClick={() => { setSelectedCategory(''); setSelectedSubcategory(''); }} className="ml-1 hover:text-destructive">×</button>
-                </Badge>
-              )}
-              {selectedSubcategory && (
-                <Badge variant="secondary" className="gap-1">
-                  {filteredSubcategories.find(s => s.id === selectedSubcategory)?.name}
-                  <button onClick={() => setSelectedSubcategory('')} className="ml-1 hover:text-destructive">×</button>
-                </Badge>
-              )}
-              {(priceRange.min || priceRange.max) && (
-                <Badge variant="secondary" className="gap-1">
-                  Precio: ${priceRange.min || '0'} - ${priceRange.max || '∞'}
-                  <button onClick={() => setPriceRange({ min: '', max: '' })} className="ml-1 hover:text-destructive">×</button>
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </section>
 
@@ -370,10 +400,10 @@ export default function CatalogoPage() {
                 return (
                   <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] group">
                     <Link href={`/catalogo/${slug}/producto/${product.id}`}>
-                      <div className="relative h-48 bg-muted">
+                      <div className="relative aspect-square bg-muted animate-fadeIn">
                         {primaryImage ? (
                           <Image
-                            src={primaryImage.image_url}
+                            src={primaryImage.image_url || "/placeholder.svg"}
                             alt={product.name}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -470,34 +500,36 @@ export default function CatalogoPage() {
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-center">Nuestro Equipo</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {employees.map((employee) => (
-                <Card key={employee.id}>
-                  <CardContent className="pt-6 text-center">
+                <Card key={employee.id} className="overflow-hidden">
+                  <CardContent className="p-4 text-center space-y-3">
                     {employee.photo_url ? (
                       <Image
-                        src={employee.photo_url}
+                        src={employee.photo_url || "/placeholder.svg"}
                         alt={employee.full_name}
-                        width={120}
-                        height={120}
-                        className="rounded-full object-cover mx-auto mb-4 w-30 h-30"
+                        width={100}
+                        height={100}
+                        className="rounded-full object-cover mx-auto w-24 h-24"
                       />
                     ) : (
-                      <div className="w-30 h-30 bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-4">
+                      <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center text-2xl font-bold mx-auto">
                         {employee.full_name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
                       </div>
                     )}
-                    <h3 className="font-semibold text-lg">{employee.full_name}</h3>
-                    {employee.position && (
-                      <p className="text-sm text-muted-foreground mb-4">{employee.position}</p>
-                    )}
+                    <div>
+                      <h3 className="font-semibold text-sm line-clamp-1">{employee.full_name}</h3>
+                      {employee.position && (
+                        <p className="text-xs text-muted-foreground">{employee.position}</p>
+                      )}
+                    </div>
                     {employee.whatsapp && (
                       <Button
                         onClick={() => window.open(`https://wa.me/${employee.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
-                        className="w-full bg-[#25D366] hover:bg-[#20BA5A]"
+                        className="w-full bg-[#25D366] hover:bg-[#20BA5A] h-8 text-xs"
                         size="sm"
                       >
-                        <MessageCircle className="w-4 h-4 mr-2" />
+                        <MessageCircle className="w-3 h-3 mr-1" />
                         Contactar
                       </Button>
                     )}
@@ -512,64 +544,86 @@ export default function CatalogoPage() {
       {/* Footer */}
       <footer className="bg-card border-t py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">{dealership.name}</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg font-bold mb-3">{dealership.name}</h3>
+              <p className="text-sm text-muted-foreground">
                 {settings?.footer_text || `Tu concesionario de confianza`}
               </p>
             </div>
-            <div>
-              <h3 className="text-xl font-bold mb-4">Contacto</h3>
-              <div className="space-y-2 text-muted-foreground">
-                {settings?.footer_address && (
-                  <p className="flex items-center">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {settings.footer_address}
-                  </p>
-                )}
-                {settings?.footer_phone && (
-                  <p className="flex items-center">
-                    <Phone className="w-4 h-4 mr-2" />
-                    {settings.footer_phone}
-                  </p>
-                )}
-                {settings?.footer_email && (
-                  <p className="flex items-center">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {settings.footer_email}
-                  </p>
-                )}
+            {(settings?.footer_address || settings?.footer_phone || settings?.footer_email) && (
+              <div>
+                <h3 className="text-lg font-bold mb-3">Contacto</h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  {settings?.footer_address && (
+                    <p className="flex items-start">
+                      <MapPin className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                      {settings.footer_address}
+                    </p>
+                  )}
+                  {settings?.footer_phone && (
+                    <p className="flex items-center">
+                      <Phone className="w-4 h-4 mr-2 shrink-0" />
+                      {settings.footer_phone}
+                    </p>
+                  )}
+                  {settings?.footer_email && (
+                    <p className="flex items-center">
+                      <Mail className="w-4 h-4 mr-2 shrink-0" />
+                      {settings.footer_email}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
             <div>
-              <h3 className="text-xl font-bold mb-4">Síguenos</h3>
-              <div className="flex space-x-4">
+              <h3 className="text-lg font-bold mb-3">Síguenos</h3>
+              <div className="flex gap-3">
                 {settings?.facebook_url && (
                   <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                    <Facebook className="w-6 h-6" />
+                    <Facebook className="w-5 h-5" />
                   </a>
                 )}
                 {settings?.instagram_url && (
                   <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                    <Instagram className="w-6 h-6" />
+                    <Instagram className="w-5 h-5" />
                   </a>
                 )}
                 {settings?.twitter_url && (
                   <a href={settings.twitter_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                    <Twitter className="w-6 h-6" />
+                    <Twitter className="w-5 h-5" />
                   </a>
                 )}
                 {settings?.youtube_url && (
                   <a href={settings.youtube_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-                    <Youtube className="w-6 h-6" />
+                    <Youtube className="w-5 h-5" />
+                  </a>
+                )}
+                {settings?.tiktok_url && (
+                  <a href={settings.tiktok_url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                    <Music className="w-5 h-5" />
                   </a>
                 )}
               </div>
             </div>
           </div>
-          <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
+          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} {dealership.name}. Todos los derechos reservados.</p>
+          </div>
+
+          {/* Advertising Section */}
+          <div className="border-t border-zinc-800 mt-6 pt-6 text-center">
+            <p className="text-xs text-zinc-500 hover:text-orange-500 transition-colors duration-200">
+              ¿Quieres una página web profesional para tu concesionario, negocio o emprendimiento?{' '}
+              <a
+                href="https://wa.me/584247708616?text=Hola%2C%20vi%20tu%20publicidad%20en%20una%20de%20tus%20webs%20y%20quiero%20informaci%C3%B3n%20sobre%20una%20p%C3%A1gina%20para%20mi%20negocio"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium hover:text-orange-400"
+              >
+                Contáctanos al +584247708616
+              </a>
+            </p>
           </div>
         </div>
       </footer>

@@ -31,8 +31,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Pencil, Trash2, Loader2, Grid3x3 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Grid3x3, Search } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +56,7 @@ export default function CategoriesPage() {
   const [editingSubcategory, setEditingSubcategory] = useState(null)
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [searchSubcategory, setSearchSubcategory] = useState('')
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -283,6 +285,10 @@ export default function CategoriesPage() {
     setSubDialogOpen(true)
   }
 
+  const filteredSubcategories = subcategories.filter((sub) =>
+    sub.name.toLowerCase().includes(searchSubcategory.toLowerCase())
+  )
+
   if (dealershipLoading || loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -302,10 +308,10 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
         {/* CATEGORÍAS */}
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader className="sticky top-0 bg-card z-10 border-b">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Categorías Principales</CardTitle>
@@ -363,65 +369,63 @@ export default function CategoriesPage() {
               </Dialog>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 overflow-y-auto">
             {categories.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Grid3x3 className="w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>No hay categorías aún</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{category.name}</p>
-                          {category.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {category.description}
-                            </p>
-                          )}
+              <div className="space-y-1">
+                {categories.map((category) => (
+                  <div
+                    key={category.id}
+                    className="p-3 rounded-md hover:bg-zinc-800/50 transition-colors group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{category.name}</p>
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            Categoría
+                          </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditCategory(category)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setDeleteTarget({ id: category.id, type: 'category' })
-                              setDeleteAlertOpen(true)
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        {category.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {category.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openEditCategory(category)}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setDeleteTarget({ id: category.id, type: 'category' })
+                            setDeleteAlertOpen(true)
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
 
         {/* SUBCATEGORÍAS */}
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col overflow-hidden">
+          <CardHeader className="sticky top-0 bg-card z-10 border-b space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Subcategorías</CardTitle>
@@ -434,7 +438,7 @@ export default function CategoriesPage() {
                     Nueva
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-md">
                   <form onSubmit={handleSubmitSubcategory}>
                     <DialogHeader>
                       <DialogTitle>
@@ -495,65 +499,70 @@ export default function CategoriesPage() {
                 </DialogContent>
               </Dialog>
             </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar subcategorías..."
+                value={searchSubcategory}
+                onChange={(e) => setSearchSubcategory(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
           </CardHeader>
-          <CardContent>
-            {subcategories.length === 0 ? (
+          <CardContent className="flex-1 overflow-y-auto">
+            {filteredSubcategories.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Grid3x3 className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p>No hay subcategorías aún</p>
+                <p>
+                  {subcategories.length === 0
+                    ? 'No hay subcategorías aún'
+                    : 'No se encontraron resultados'}
+                </p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {subcategories.map((subcategory) => (
-                    <TableRow key={subcategory.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{subcategory.name}</p>
-                          {subcategory.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {subcategory.description}
-                            </p>
-                          )}
+              <div className="space-y-1">
+                {filteredSubcategories.map((subcategory) => (
+                  <div
+                    key={subcategory.id}
+                    className="p-3 rounded-md hover:bg-zinc-800/50 transition-colors group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{subcategory.name}</p>
+                          <Badge variant="secondary" className="text-xs shrink-0">
+                            {subcategory.categories?.name}
+                          </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {subcategory.categories?.name}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openEditSubcategory(subcategory)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setDeleteTarget({ id: subcategory.id, type: 'subcategory' })
-                              setDeleteAlertOpen(true)
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        {subcategory.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {subcategory.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openEditSubcategory(subcategory)}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setDeleteTarget({ id: subcategory.id, type: 'subcategory' })
+                            setDeleteAlertOpen(true)
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
