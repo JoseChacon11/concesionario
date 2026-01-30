@@ -30,7 +30,6 @@ export default function CatalogoPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSubcategory, setSelectedSubcategory] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const supabase = createClient()
   const { toast } = useToast()
   const { addItem, setDealershipInfo } = useCartStore()
@@ -154,16 +153,8 @@ export default function CatalogoPage() {
       result = result.filter((product) => product.subcategory_id === selectedSubcategory)
     }
 
-    // Apply price range filter
-    if (priceRange.min) {
-      result = result.filter((product) => product.price >= parseFloat(priceRange.min))
-    }
-    if (priceRange.max) {
-      result = result.filter((product) => product.price <= parseFloat(priceRange.max))
-    }
-
     return result
-  }, [products, searchTerm, selectedCategory, selectedSubcategory, priceRange, fuse])
+  }, [products, searchTerm, selectedCategory, selectedSubcategory, fuse])
 
   // Get filtered subcategories based on selected category
   const filteredSubcategories = useMemo(() => {
@@ -181,14 +172,13 @@ export default function CatalogoPage() {
   }
 
   // Check if there are active filters
-  const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory || priceRange.min || priceRange.max
+  const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory
 
   // Clear all filters
   const clearAllFilters = () => {
     setSearchTerm('')
     setSelectedCategory('')
     setSelectedSubcategory('')
-    setPriceRange({ min: '', max: '' })
   }
 
   if (loading) {
@@ -214,7 +204,7 @@ export default function CatalogoPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-2 md:py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {settings?.logo_url ? (
               <Image
@@ -261,7 +251,7 @@ export default function CatalogoPage() {
       )}
 
       {/* Search and Filters Section */}
-      <section className="border-b py-4 bg-gradient-to-r from-background to-card/50 sticky top-16 z-40">
+      <section className="border-b py-4 bg-gradient-to-r from-background to-card/50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col gap-3">
             {/* Main Filters Row */}
@@ -309,35 +299,15 @@ export default function CatalogoPage() {
                 ))}
               </select>
 
-              {/* Price Inputs */}
-              <div className="flex gap-2 flex-shrink-0">
-                <Input
-                  type="number"
-                  placeholder="Mín"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                  className="w-20 h-10"
-                />
-                <span className="flex items-center text-muted-foreground px-1">-</span>
-                <Input
-                  type="number"
-                  placeholder="Máx"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                  className="w-20 h-10"
-                />
-              </div>
-
               {/* Clear Button */}
               {hasActiveFilters && (
                 <Button
                   onClick={clearAllFilters}
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 whitespace-nowrap h-10 flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  size="default"
+                  className="gap-2 whitespace-nowrap h-10 flex-shrink-0"
                 >
                   <FilterX className="w-4 h-4" />
-                  <span className="hidden sm:inline text-sm">Limpiar</span>
+                  <span className="text-sm font-medium">Limpiar Filtros</span>
                 </Button>
               )}
             </div>
@@ -361,12 +331,6 @@ export default function CatalogoPage() {
                   <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
                     {filteredSubcategories.find(s => s.id === selectedSubcategory)?.name}
                     <button onClick={() => setSelectedSubcategory('')} className="ml-1 hover:text-destructive">×</button>
-                  </Badge>
-                )}
-                {(priceRange.min || priceRange.max) && (
-                  <Badge variant="secondary" className="gap-1 cursor-pointer text-xs">
-                    ${priceRange.min || '0'} - ${priceRange.max || '∞'}
-                    <button onClick={() => setPriceRange({ min: '', max: '' })} className="ml-1 hover:text-destructive">×</button>
                   </Badge>
                 )}
               </div>
