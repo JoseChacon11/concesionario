@@ -3,8 +3,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata = {
-  title: 'MotoDealer SaaS - Sistema Multi-tenant',
-  description: 'Sistema de gestión para concesionarios de motos',
+  title: 'El mejor Concesionario',
+  description: 'Explora las mejores marcas en un solo lugar. Fichas técnicas interactivas, galería en alta resolución y atención directa por WhatsApp. Tu próxima aventura comienza aquí.',
 }
 
 export default function RootLayout({ children }) {
