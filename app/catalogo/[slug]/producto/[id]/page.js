@@ -1,5 +1,7 @@
 'use client'
 
+import { DialogClose } from "@/components/ui/dialog"
+
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -7,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, ShoppingCart, MessageCircle, Package, Calendar, Gauge, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ShoppingCart, MessageCircle, Package, Calendar, Gauge, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
@@ -28,7 +30,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogClose,
 } from '@/components/ui/dialog'
 
 export default function ProductDetailPage() {
@@ -355,11 +356,6 @@ export default function ProductDetailPage() {
                   {selectedImageIndex + 1} / {images.length}
                 </div>
               </div>
-
-              <DialogClose className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 transition-colors">
-                <X className="w-6 h-6" />
-                <span className="sr-only">Cerrar</span>
-              </DialogClose>
             </DialogContent>
           </Dialog>
 
