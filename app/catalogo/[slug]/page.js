@@ -204,14 +204,14 @@ export default function CatalogoPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-2 md:py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-1 md:py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {settings?.logo_url ? (
               <Image
                 src={settings.logo_url || "/placeholder.svg"}
                 alt={dealership.name}
-                width={150}
-                height={60}
+                width={120}
+                height={40}
                 className="object-contain"
               />
             ) : (
